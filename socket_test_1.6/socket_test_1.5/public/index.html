@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width>, initial-scale=1.0">
+    <title>Document</title>
+    
+</head>
+<body>
+    <h1>Socket.io</h1>
+    <p>This series is about Socket.op which is for real-time two-way communication</p>
+    <p>http는 사실 real-time 도 two-way도 아니다.</p>
+    <p>XMPP is originally for real-time, two-way</p>
+    <p>XMPP는 http가 아니므로 socket.io로 real-time, two-way가능하게 함.</p>
+    
+    <input type="text" id="test" onkeyup="enterkey()" placeholder="메시지를 입력해주세요..">
+    <button onclick="send()" >전송</button>
+    <div class="chat_inner" id="chat_inners"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- <script scr="/index.js"></script> -->
+
+
+
+    <script>
+        
+        let socket = io();  //socket은 브라우저에서의 이벤트를 처리
+        var name = prompt('이름을 입력해주세요.', '')
+        if (name=='')
+            name='익명';
+		let room = prompt('방 번호를 입력해주세요.', '')
+		socket.room = room;
+		socket.emit('send_room',room)
+		console.log("room:",socket.room, room)
+		var isTeacher = prompt('호스트면 1 아니면 0을 입력해주세요', '')
+		isTeacher = 1*isTeacher
+		
+        socket.on('connect',()=>{
+            console.log('Connected from server'); 
+			socket.emit('request_chat', room);
+        });
+        socket.on('disconnect',()=>{
+            console.log('Disconnected from server'); //이 console.log는 브라우저에서 나오는거임
+        });
+        
+        socket.on('MsgFromServer', function (msg,name){   //MsgFromServer라는 이벤트가 서버에서 오면 웹의 콘솔에 msg띄워줌 
+            console.log(msg);
+            const chat_inner = document.getElementById('chat_inners');
+            chat_inner.innerHTML += `<dl>${name} : ${msg}</dl>`;
+        });
+		socket.on('get_chat', function (result){   //MsgFromServer라는 이벤트가 서버에서 오면 웹의 콘솔에 msg띄워줌 
+            console.log(result.length)
+			for(var i=0; i<result.length; i++){
+				const chat_inner = document.getElementById('chat_inners');
+            	chat_inner.innerHTML += `<dl>${result[i].userName} : ${result[i].msg}</dl>`;	
+			}
+            
+        });
+		
+        function send(){
+            var message = document.getElementById('test').value
+            document.getElementById('test').value = ''
+            console.log(message);
+            socket.emit('Msg',message, name,room)
+
+            const chat_inner = document.getElementById('chat_inners');
+            chat_inner.innerHTML += `<dl>${name} : ${message}</dl>`;
+
+        }
+        function enterkey() { 
+            if (window.event.keyCode == 13) {
+                 // 엔터키가 눌렸을 때 
+                 send();
+            } 
+        }
+
+
+
+        
+    </script> 
+</body>
+</html>
+
+
+
+
